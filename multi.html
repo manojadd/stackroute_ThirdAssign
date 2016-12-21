@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src = "https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.min.js"></script>
+</head>
+<body>
+
+    <script>
+
+    d3.json("json_two", function (error, data) {
+    	var padding = 2;
+    	var margin = 100;
+    	console.log(data);
+    	var svg_h = 400;
+    	var svg_w = 1000;
+    	console.log(data);
+    	var svg = d3.select("body")
+    				.append("svg")
+    				.attr("height","800")
+    				.attr("width","1300")
+    				.attr("transform","translate("+margin+","+margin+")");
+    	var maxc = [];
+    	maxc.push(d3.max(data,function(d){ return d.carb;}));
+    	maxc.push(d3.max(data,function(d){ return d.prot;}));
+    	maxc.push(d3.max(data,function(d){ return d.fat;}));
+    	var maxy = d3.max(maxc);
+    	var yscale = d3.scaleLinear()
+    					.domain([0,maxy])
+    					.range([svg_h,0]);
+    	var keys = data.keys();
+    	var xscale = d3.scaleBand()
+    					.domain(keys)
+    					.range([0,svg_w]);
+        var bar_width = (svg_w - (data.length*padding))/data.length;
+
+    	var fatline = d3.line()
+    		.x(function(d,i){ return i*bar_width + bar_width/2;})
+    		.y(function(d,i){ return yscale(d.fat);});
+ 		var protline = d3.line()
+    		.x(function(d,i){ return i*bar_width + bar_width/2;})
+    		.y(function(d,i){ return yscale(d.prot);});
+     	var carbline = d3.line()
+    		.x(function(d,i){ return i*bar_width + bar_width/2;})
+    		.y(function(d,i){ return yscale(d.carb);});
+       	
+    	var fatgraph = svg.append("path")
+    						.attr("d",fatline(data))
+    						.attr("stroke","blue")
+    						.attr("stroke-width",3)
+    						.attr("fill","none");
+    					
+    	var protgraph = svg.append("path")
+    						.attr("d",protline(data))
+    						.attr("stroke","red")
+    						.attr("stroke-width",3)
+    						.attr("fill","none");
+    	var carbgraph = svg.append("path")
+    						.attr("d",carbline(data))
+    						.attr("stroke","green")
+    						.attr("stroke-width",3)
+    						.attr("fill","none");	
+    	console.log(data);
+
+var yascale = d3.scaleLinear();
+                yascale.range([svg_h,0])
+                yascale.domain([0,maxy]);
+
+
+    	svg.append("g")
+      .call(d3.axisLeft(yascale));
+
+      var xscale = d3.scaleBand()
+                      .range([0, svg_w])
+                      .domain(data.map(function(d){
+                        return d.conti;
+                      }));
+
+      svg.append("g")
+        .attr("transform","translate(0," +svg_h+ ")")
+        .call(d3.axisBottom(xscale));
+
+
+var ordinal = d3.scaleOrdinal()
+  .domain(["Fat/100g", "Protein/100g","Carbohydrates/100g"])
+  .range([ "blue", "red","green"]);
+
+
+svg.append("g")
+  .attr("class", "legendband")
+  .attr("transform", "translate("  + svg_w+ ",0 )");
+var legendband = d3.legendColor()
+  .scale(ordinal);
+
+svg.select(".legendband")
+  .call(legendband);
+    
+		svg.append("text")
+      .attr("transform", "rotate(-90) translate(0,-50)")
+      .attr("y", 0 )
+      .attr("x",0 - (svg_h / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Consumption in Grams"); 		
+    });
+
+    </script>
+</body>
+
+</html>

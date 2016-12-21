@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src = "https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.min.js"></script>
+</head>
+<body>
+    <script>
+    d3.json("json_one", function (error, data) {
+      console.log(data);
+      var svg_w = 800;
+                var svg_h = 400;
+        var margin = 50;
+
+                var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", svg_w+margin+margin+margin+margin)
+                    .attr("height", svg_h+margin+margin);
+                 console.log(d3.max(data, function(d) { return d["sugars_100g"]+d["salt_100g"]; }));
+                 var ymax = d3.max(data, function(d) { return d["sugars_100g"]+d["salt_100g"]; });
+                var yscale = d3.scaleLinear();
+                yscale.domain([0,ymax])
+                .range([0,svg_h]);
+                var yascale = d3.scaleLinear();
+                yascale.range([svg_h,0])
+                yascale.domain([0,ymax]);
+                  
+              var xscale = d3.scaleBand()
+                      .range([0, svg_w])
+                      .domain(data.map(function(d){
+                        return d.countries_en;
+                      }));
+                var padding = 10;
+                var bar_width = (svg_w - (data.length*padding))/data.length;
+                var rects = svg.selectAll("rect")
+                        .data(data)
+                        .enter()
+                        .append("rect")
+                        .attr("x",function(d,i)
+                        {
+                          return i*(bar_width + padding);
+                        })
+                        .attr("y",function(d){
+                          return  svg_h - yscale( d["sugars_100g"]);
+                        })
+                        .attr("width",bar_width+"px")
+                        .attr('height',function(d){
+                          return yscale(d["sugars_100g"])+"px";
+                        })
+                        .style("fill","blue")
+                        .attr("transform","translate(" + margin + "," + margin + ")");
+                        
+                var rects1 = svg.selectAll("rect.category")
+                        .data(data)
+                        .enter()
+                        .append("rect")
+                        .attr("class","category")
+                        .attr("x",function(d,i)
+                        {
+                          return i*(bar_width + padding);
+                        })
+                        .attr("y",function(d){
+                          return  svg_h - yscale( d["salt_100g"]+d["sugars_100g"]);
+                        })
+                        .attr("width",bar_width+"px")
+                        .attr('height',function(d){
+                          return yscale(d["salt_100g"])+"px";
+                        })
+                        .style("fill","orange")
+                        .attr("transform","translate(" + margin + "," + margin + ")");
+        svg.append("g")
+      .call(d3.axisLeft(yascale))
+      .attr("transform","translate(" + margin + "," + margin + ")");
+      svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 )
+      .attr("x",0 - (svg_h / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Consumption in Grams");  
+
+      svg.append("g")
+        .attr("transform","translate(" + margin + "," + (margin +svg_h)+ ")")
+        .call(d3.axisBottom(xscale));
+
+
+
+
+          
+var ordinal = d3.scaleOrdinal()
+  .domain(["Sugar/100g", "Salt/100g"])
+  .range([ "blue", "orange"]);
+
+
+svg.append("g")
+  .attr("class", "legendband")
+  .attr("transform", "translate("  + svg_w+ ",0 )");
+var legendband = d3.legendColor()
+  .scale(ordinal);
+
+svg.select(".legendband")
+  .call(legendband);
+          
+        
+
+});
+
+
+
+    </script>
+</body>
+</html>
