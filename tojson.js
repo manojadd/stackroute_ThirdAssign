@@ -1,6 +1,8 @@
 var fs = require('fs');
 
 
+
+
 var data = fs.readFileSync('./FoodFacts.csv', 'utf-8');
 var lines = data.split("\n");
 
@@ -18,10 +20,6 @@ var obarray = [];
 
 var k=0;
 
-
-
-
-
 for (var i = 1; i < lines.length - 1; i++) {
     //this was my regex =>  splitted = lines[i].split(/,(?![^"]*",)/);
     splitted = lines[i].split(re);
@@ -33,17 +31,16 @@ for (var i = 1; i < lines.length - 1; i++) {
         many_countries_arr = many_countries.split(/,/);
         for (var m = 0; m < many_countries_arr.length; m++)
         {
-        	obb ={
+            obb ={
             countries_en: many_countries_arr[m],
             sugars_100g: splitted[102],
             salt_100g: splitted[116],
             carbohydrates_100g: splitted[101],
             fat_100g: splitted[65],
             proteins_100g: splitted[112]
-        	}
-        	obarray[k++] = obb;
+            }
+            obarray[k++] = obb;
         }
-
 
     } else
      {
@@ -65,36 +62,8 @@ collect_attr = JSON.stringify(obarray, null, "\t\n\t");
 console.log(obarray.length);
 fs.writeFileSync('./jsonfile', collect_attr, 'utf-8');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var data_arr = fs.readFileSync("./jsonfile");
 var data_arr = JSON.parse(data_arr);
-
-
-
 
 var nether_count_su=0;
 var canada_count_su=0;
@@ -106,7 +75,6 @@ var germ_count_su=0;
 var spain_count_su=0;
 var africa_count_su=0;
 
-
 var nether_count_sa=0;
 var canada_count_sa=0;
 var uk_count_sa=0;
@@ -116,7 +84,6 @@ var france_count_sa=0;
 var germ_count_sa=0;
 var spain_count_sa=0;
 var africa_count_sa=0;
-
 
 var json_one_data = [
 {
@@ -165,9 +132,6 @@ var json_one_data = [
     "sugars_100g": 0
 }
 ];
-
-
-
 
 for (var k = 0; k < data_arr.length; k++)
 {
@@ -283,32 +247,12 @@ fs.writeFileSync('./json_one', json_one_output);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var data_in = fs.readFileSync('./jsonfile','utf-8');
 data_in = JSON.parse(data_in);
 //console.log(data_in);
 var json_data_two;
 var continents;
-
+var conti_count=0;
 
 if(fs.existsSync('json_two'))
 {
@@ -320,7 +264,7 @@ if(fs.existsSync('json_two'))
 else
 {
         fs.openSync("json_two",'w');
-        fs.writeFileSync("json_two","{}");
+        fs.writeFileSync("json_two","[]");
         json_data_two = fs.readFileSync('./json_two','utf-8');
         json_data_two = JSON.parse(json_data_two);
 }
@@ -346,13 +290,14 @@ else
 function add_continent(continent_name)
 {
      if(continents.hasOwnProperty(continent_name+"_list"))
-        console.log(continent_name + " Already exists, add_continent failed.\n");
-
+    {    console.log(continent_name + " Already exists, add_continent failed.\n");
+        conti_count++;
+    }
      else
      {
 
         continents[continent_name+"_list"] = [];
-        json_data_two[continent_name] = {fat: 0,carb:0,prot:0,count:0};
+        json_data_two[conti_count++] = {conti:continent_name,fat: 0,carb:0,prot:0,count:0};
         console.log(continent_name + " Added.\n");
      }
 }
@@ -369,27 +314,35 @@ function add_country(country_name,continent_name)
     }
     else
     {
-        var json_fat = json_data_two[continent_name].fat*json_data_two[continent_name].count;
-        var json_carb = json_data_two[continent_name].carb*json_data_two[continent_name].count;
-        var json_prot = json_data_two[continent_name].prot*json_data_two[continent_name].count;
+        
+        json_data_two.every(function(element,index){ if(element.conti == continent_name)
+                                                        {
+                                                             conti_index = index;
+                                                             return false;
+                                                         }
+                                                         else return true});
+        console.log("conti_index for "+continent_name+" is " + conti_index);
+        var json_fat = json_data_two[conti_index].fat*json_data_two[conti_index].count;
+        var json_carb = json_data_two[conti_index].carb*json_data_two[conti_index].count;
+        var json_prot = json_data_two[conti_index].prot*json_data_two[conti_index].count;
         continents[continent_name+"_list"].push(country_name);
         
         for(var i = 0;i<data_in.length;i++)
         {
             if(country_name == data_in[i].countries_en)
             {
-               json_data_two[continent_name].count++;
+               json_data_two[conti_index].count++;
                 json_fat += (isNaN(parseFloat(data_in[i].fat_100g)) ? 0: parseFloat(data_in[i].fat_100g));
                 json_carb += (isNaN(parseFloat(data_in[i].carbohydrates_100g)) ? 0: parseFloat(data_in[i].carbohydrates_100g));
                 json_prot += (isNaN(parseFloat(data_in[i].proteins_100g)) ? 0: parseFloat(data_in[i].proteins_100g));
-            7}
+            }
         }
         console.log(json_fat);
         console.log(json_prot);
         console.log(json_carb);
-        json_data_two[continent_name].fat = json_fat/json_data_two[continent_name].count;
-        json_data_two[continent_name].carb = json_carb/json_data_two[continent_name].count;
-        json_data_two[continent_name].prot = json_prot/json_data_two[continent_name].count;
+        json_data_two[conti_index].fat = json_fat/json_data_two[conti_index].count;
+        json_data_two[conti_index].carb = json_carb/json_data_two[conti_index].count;
+        json_data_two[conti_index].prot = json_prot/json_data_two[conti_index].count;
         console.log(country_name+" added to "+continent_name+"\n");
     }
 
